@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeAZERTY — Maîtrisez votre clavier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:       #07071a;
+            --panel:    rgba(255,255,255,0.035);
+            --border:   rgba(255,255,255,0.07);
+            --violet:   #7c3aed;
+            --violet-l: #a78bfa;
+            --cyan:     #06b6d4;
+            --cyan-l:   #67e8f9;
+            --amber:    #f59e0b;
+            --green:    #10b981;
+            --red:      #ef4444;
+            --txt:      #f1f5f9;
+            --txt2:     #94a3b8;
+            --txt3:     #475569;
+            --key-bg:   #1a1740;
+            --key-top:  #252060;
+            --key-bd:   #3730a3;
+            --key-sh:   #0a0825;
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Animated background ── */
+        .bg {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse 70% 55% at 15% 5%,  rgba(124,58,237,.18) 0%, transparent 65%),
+                radial-gradient(ellipse 55% 45% at 85% 95%, rgba(6,182,212,.12)  0%, transparent 55%),
+                radial-gradient(ellipse 40% 50% at 55% 45%, rgba(245,158,11,.07) 0%, transparent 60%);
+        }
+        .orb {
+            position: fixed; border-radius: 50%; filter: blur(90px);
+            pointer-events: none; z-index: 0;
+            animation: float 18s ease-in-out infinite;
+        }
+        .orb-1 { width:500px; height:500px; background:var(--violet); opacity:.12; top:-150px; left:-150px; animation-delay:0s; }
+        .orb-2 { width:350px; height:350px; background:var(--cyan);   opacity:.1;  bottom:-100px; right:-100px; animation-delay:-8s; }
+        .orb-3 { width:250px; height:250px; background:var(--amber);  opacity:.06; top:45%; right:18%; animation-delay:-4s; }
+
+        @keyframes float {
+            0%,100% { transform: translate(0,0) scale(1); }
+            33%      { transform: translate(25px,-25px) scale(1.04); }
+            66%      { transform: translate(-18px,18px) scale(.96); }
+        }
+
+        /* ── Layout ── */
+        .app {
+            position: relative; z-index: 1;
+            max-width: 1080px; margin: 0 auto;
+            padding: 0 1.5rem 5rem;
+        }
+
+        /* ── Header ── */
+        header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.4rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .logo { display:flex; align-items:center; gap:.7rem; }
+        .logo-icon {
+            width:42px; height:42px;
+            background: linear-gradient(135deg, var(--violet), var(--cyan));
+            border-radius:12px; font-size:1.4rem;
+            display:flex; align-items:center; justify-content:center;
+            box-shadow: 0 0 22px rgba(124,58,237,.45);
+        }
+        .logo-text {
+            font-size:1.45rem; font-weight:800; letter-spacing:-.5px;
+            background: linear-gradient(135deg, var(--violet-l), var(--cyan-l));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .logo-text em { font-style:normal; -webkit-text-fill-color:var(--amber); }
+
+        nav { display:flex; gap:.4rem; }
+        .nav-btn {
+            padding:.45rem .9rem; border-radius:8px;
+            border:1px solid var(--border); background:var(--panel);
+            color:var(--txt2); font-size:.82rem; font-weight:500;
+            cursor:pointer; transition:all .2s; font-family:inherit;
+        }
+        .nav-btn:hover  { background:rgba(124,58,237,.15); border-color:var(--violet); color:var(--violet-l); }
+        .nav-btn.active { background:rgba(124,58,237,.22); border-color:var(--violet); color:var(--violet-l);
+            box-shadow:0 0 14px rgba(124,58,237,.2); }
+
+        /* ── Stats ── */
+        .stats-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:.9rem; margin-bottom:1.5rem; }
+        .stat-card {
+            background:var(--panel); border:1px solid var(--border);
+            border-radius:16px; padding:1.1rem 1.4rem; text-align:center;
+            position:relative; overflow:hidden; transition:border-color .3s;
+        }
+        .stat-card::after {
+            content:''; position:absolute; top:0; left:0; right:0; height:2px;
+            background:var(--g); opacity:0; transition:opacity .4s;
+        }
+        .stat-card.pulse::after { opacity:1; }
+        .stat-card:nth-child(1) { --g: linear-gradient(90deg,var(--cyan),var(--violet)); }
+        .stat-card:nth-child(2) { --g: linear-gradient(90deg,var(--green),var(--cyan)); }
+        .stat-card:nth-child(3) { --g: linear-gradient(90deg,var(--amber),var(--red)); }
+        .stat-card:nth-child(4) { --g: linear-gradient(90deg,var(--violet),var(--amber)); }
+
+        .stat-val {
+            font-size:2.4rem; font-weight:700;
+            font-family:'JetBrains Mono',monospace; line-height:1; margin-bottom:.2rem;
+        }
+        .stat-card:nth-child(1) .stat-val { color:var(--cyan-l); }
+        .stat-card:nth-child(2) .stat-val { color:#34d399; }
+        .stat-card:nth-child(3) .stat-val { color:var(--amber); }
+        .stat-card:nth-child(4) .stat-val { color:var(--violet-l); }
+        .stat-lbl { font-size:.7rem; font-weight:600; color:var(--txt3); text-transform:uppercase; letter-spacing:1.2px; }
+
+        /* ── Progress ── */
+        .prog-wrap { margin-bottom:1.2rem; }
+        .prog-bar  { height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
+        .prog-fill { height:100%; width:0%; border-radius:3px; transition:width .25s ease;
+            background: linear-gradient(90deg, var(--violet), var(--cyan)); }
+
+        /* ── Typing area ── */
+        .typing-area {
+            background:var(--panel); border:1px solid var(--border);
+            border-radius:20px; padding:1.8rem 2rem; margin-bottom:1.2rem;
+            position:relative; backdrop-filter:blur(24px);
+            transition:border-color .3s, box-shadow .3s; cursor:text;
+        }
+        .typing-area:focus-within {
+            border-color:rgba(124,58,237,.4);
+            box-shadow:0 0 32px rgba(124,58,237,.1);
+        }
+        .typing-prompt {
+            font-size:.68rem; font-weight:600; color:var(--txt3);
+            text-transform:uppercase; letter-spacing:1.8px;
+            margin-bottom:1rem; display:flex; align-items:center; gap:.5rem;
+        }
+        .typing-prompt::before {
+            content:''; width:7px; height:7px; border-radius:50%;
+            background:var(--green); box-shadow:0 0 7px var(--green);
+            display:inline-block; animation:blink-dot 2.2s ease-in-out infinite;
+        }
+        @keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .text-display {
+            font-family:'JetBrains Mono',monospace;
+            font-size:1.28rem; line-height:2.1; letter-spacing:.4px;
+            min-height:4rem; word-break:break-word;
+        }
+        .char { color:var(--txt3); transition:color .08s; }
+        .char.ok   { color:var(--txt); }
+        .char.bad  { color:var(--red); text-decoration:underline; text-decoration-color:rgba(239,68,68,.5); }
+        .char.cur  { color:var(--violet-l); position:relative; }
+        .char.cur::before {
+            content:''; position:absolute; left:0; top:12%; height:76%;
+            width:2px; background:var(--violet-l); border-radius:2px;
+            animation:cur-blink 1s ease-in-out infinite;
+        }
+        @keyframes cur-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        .hidden-input {
+            position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;
+            top:0; left:0;
+        }
+
+        /* Start overlay */
+        .start-overlay {
+            position:absolute; inset:0; border-radius:20px;
+            background:rgba(7,7,26,.72); backdrop-filter:blur(6px);
+            display:flex; align-items:center; justify-content:center;
+            transition:opacity .3s; z-index:5;
+        }
+        .start-overlay.gone { opacity:0; pointer-events:none; }
+        .start-hint-main { font-size:.95rem; font-weight:600; color:var(--violet-l); margin-bottom:.2rem; text-align:center; }
+        .start-hint-sub  { font-size:.78rem; color:var(--txt3); text-align:center; }
+
+        /* Shake animation */
+        @keyframes shake {
+            0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)}
+        }
+        .shake { animation:shake .22s ease-in-out; }
+
+        /* ── Virtual Keyboard ── */
+        .kb-wrap {
+            background:var(--panel); border:1px solid var(--border);
+            border-radius:20px; padding:1.4rem 1.2rem 1.2rem;
+            margin-bottom:1.5rem; backdrop-filter:blur(24px);
+        }
+        .kb-header {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:1rem;
+        }
+        .kb-title { font-size:.7rem; font-weight:600; color:var(--txt3); text-transform:uppercase; letter-spacing:1.5px; }
+        .finger-hint {
+            font-size:.72rem; color:var(--violet-l);
+            background:rgba(124,58,237,.12); border:1px solid rgba(124,58,237,.2);
+            border-radius:20px; padding:.2rem .8rem; min-height:1.5rem;
+            display:inline-flex; align-items:center; transition:all .2s;
+        }
+
+        .keyboard { display:flex; flex-direction:column; gap:5px; align-items:center; }
+        .key-row   { display:flex; gap:4px; }
+
+        .key {
+            background: linear-gradient(180deg, var(--key-top) 0%, var(--key-bg) 100%);
+            border: 1px solid var(--key-bd); border-radius:7px;
+            min-width:42px; height:42px;
+            display:flex; align-items:center; justify-content:center;
+            font-family:'JetBrains Mono',monospace; font-size:.8rem; font-weight:500;
+            color:var(--txt2); position:relative; user-select:none;
+            transition:all .1s;
+            box-shadow: 0 3px 0 var(--key-sh), 0 4px 8px rgba(0,0,0,.35);
+        }
+        .key-inner { display:flex; flex-direction:column; align-items:center; line-height:1.1; }
+        .key-sh    { font-size:.58rem; color:var(--txt3); }
+        .key-main  { font-size:.8rem; }
+
+        /* States */
+        .key.hl {
+            background: linear-gradient(180deg,rgba(124,58,237,.7) 0%,rgba(124,58,237,.5) 100%);
+            border-color:var(--violet-l); color:#fff;
+            box-shadow:0 3px 0 rgba(67,56,202,.9), 0 0 22px rgba(124,58,237,.55);
+        }
+        .key.ok-press {
+            background: linear-gradient(180deg,rgba(16,185,129,.7) 0%,rgba(16,185,129,.5) 100%);
+            border-color:#34d399; color:#fff;
+            box-shadow:0 1px 0 rgba(5,150,105,.9), 0 0 15px rgba(16,185,129,.35);
+            transform:translateY(2px);
+        }
+        .key.bad-press {
+            background: linear-gradient(180deg,rgba(239,68,68,.7) 0%,rgba(239,68,68,.5) 100%);
+            border-color:#fca5a5; color:#fff;
+            box-shadow:0 1px 0 rgba(185,28,28,.9), 0 0 15px rgba(239,68,68,.3);
+            transform:translateY(2px);
+        }
+        .key.phys-press {
+            box-shadow:0 1px 0 var(--key-sh);
+            transform:translateY(2px);
+        }
+
+        /* Special key widths */
+        .k-bsp  { min-width:78px; }
+        .k-tab  { min-width:66px; }
+        .k-ent  { min-width:78px; }
+        .k-cap  { min-width:80px; }
+        .k-shl  { min-width:98px; }
+        .k-shr  { min-width:98px; }
+        .k-sp   { min-width:340px; }
+        .k-mod  { min-width:56px; font-size:.72rem; }
+
+        /* ── Actions ── */
+        .actions { display:flex; gap:.8rem; justify-content:center; margin-bottom:1.5rem; }
+        .btn {
+            padding:.7rem 1.8rem; border-radius:12px; border:none;
+            font-family:inherit; font-size:.88rem; font-weight:600;
+            cursor:pointer; transition:all .2s; letter-spacing:.2px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--violet), var(--cyan));
+            color:#fff; box-shadow:0 4px 22px rgba(124,58,237,.4);
+        }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(124,58,237,.5); }
+        .btn-secondary {
+            background:var(--panel); border:1px solid var(--border); color:var(--txt2);
+        }
+        .btn-secondary:hover { border-color:var(--violet); color:var(--violet-l); background:rgba(124,58,237,.1); }
+
+        /* ── Results Modal ── */
+        .modal-overlay {
+            position:fixed; inset:0;
+            background:rgba(7,7,26,.88); backdrop-filter:blur(12px);
+            z-index:100; display:flex; align-items:center; justify-content:center;
+            opacity:0; pointer-events:none; transition:opacity .3s;
+        }
+        .modal-overlay.on { opacity:1; pointer-events:all; }
+        .modal {
+            background:#101028; border:1px solid var(--border);
+            border-radius:24px; padding:2.4rem 2.2rem;
+            max-width:460px; width:90%; text-align:center;
+            transform:scale(.92) translateY(18px); transition:transform .3s;
+            position:relative; overflow:hidden;
+        }
+        .modal-overlay.on .modal { transform:scale(1) translateY(0); }
+        .modal::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background:linear-gradient(90deg,var(--violet),var(--cyan),var(--amber));
+        }
+        .modal-emo   { font-size:3.8rem; margin-bottom:.8rem; }
+        .modal-title {
+            font-size:1.6rem; font-weight:800; margin-bottom:.4rem;
+            background:linear-gradient(135deg,var(--violet-l),var(--cyan-l));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .modal-sub  { color:var(--txt2); font-size:.88rem; margin-bottom:1.8rem; }
+        .res-grid   { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-bottom:1.8rem; }
+        .res-item   { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:.9rem; }
+        .res-val    { font-size:2rem; font-weight:700; font-family:'JetBrains Mono',monospace; }
+        .res-item:nth-child(1) .res-val { color:var(--cyan-l); }
+        .res-item:nth-child(2) .res-val { color:#34d399; }
+        .res-item:nth-child(3) .res-val { color:var(--amber); }
+        .res-item:nth-child(4) .res-val { color:var(--violet-l); }
+        .res-lbl { font-size:.68rem; color:var(--txt3); text-transform:uppercase; letter-spacing:1px; margin-top:.2rem; }
+        .modal-btns { display:flex; gap:.7rem; justify-content:center; }
+
+        /* ── Responsive ── */
+        @media(max-width:900px) {
+            .keyboard { transform:scale(.8); transform-origin:top center; margin-bottom:-2.5rem; }
+        }
+        @media(max-width:650px) {
+            .stats-bar { grid-template-columns:repeat(2,1fr); }
+            .keyboard  { transform:scale(.55); transform-origin:top center; margin-bottom:-6rem; }
+            .text-display { font-size:1.05rem; }
+            header { flex-direction:column; gap:1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="app">
+
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">⌨</div>
+            <div class="logo-text">Type<em>AZERTY</em></div>
+        </div>
+        <nav id="nav">
+            <button class="nav-btn active" onclick="setMode('letters',this)">Lettres</button>
+            <button class="nav-btn" onclick="setMode('words',this)">Mots</button>
+            <button class="nav-btn" onclick="setMode('phrases',this)">Phrases</button>
+            <button class="nav-btn" onclick="setMode('special',this)">Spéciaux</button>
+        </nav>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+        <div class="stat-card" id="sc-wpm">
+            <div class="stat-val" id="v-wpm">0</div>
+            <div class="stat-lbl">Mots / min</div>
+        </div>
+        <div class="stat-card" id="sc-acc">
+            <div class="stat-val" id="v-acc">—</div>
+            <div class="stat-lbl">Précision</div>
+        </div>
+        <div class="stat-card" id="sc-time">
+            <div class="stat-val" id="v-time">0s</div>
+            <div class="stat-lbl">Temps</div>
+        </div>
+        <div class="stat-card" id="sc-str">
+            <div class="stat-val" id="v-str">0</div>
+            <div class="stat-lbl">Série</div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+    </div>
+
+    <!-- Typing area -->
+    <div class="typing-area" id="typing-area" onclick="focusInput()">
+        <div class="typing-prompt">Tapez le texte ci-dessous</div>
+        <div class="text-display" id="display"></div>
+        <input id="inp" class="hidden-input" type="text"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="start-overlay" id="start-ov">
+            <div>
+                <div class="start-hint-main">Cliquez ici pour commencer</div>
+                <div class="start-hint-sub">ou appuyez sur n'importe quelle touche</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard -->
+    <div class="kb-wrap">
+        <div class="kb-header">
+            <span class="kb-title">Clavier AZERTY</span>
+            <span class="finger-hint" id="finger-hint">&nbsp;</span>
+        </div>
+        <div class="keyboard" id="keyboard"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+        <button class="btn btn-primary" onclick="restartTest()">↺&nbsp; Recommencer</button>
+        <button class="btn btn-secondary" onclick="nextText()">→&nbsp; Texte suivant</button>
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <div class="modal-emo" id="m-emo">🏆</div>
+        <div class="modal-title" id="m-title">Excellent !</div>
+        <div class="modal-sub" id="m-sub">Voici vos résultats</div>
+        <div class="res-grid">
+            <div class="res-item"><div class="res-val" id="r-wpm">0</div><div class="res-lbl">Mots/min</div></div>
+            <div class="res-item"><div class="res-val" id="r-acc">0%</div><div class="res-lbl">Précision</div></div>
+            <div class="res-item"><div class="res-val" id="r-time">0s</div><div class="res-lbl">Temps</div></div>
+            <div class="res-item"><div class="res-val" id="r-err">0</div><div class="res-lbl">Erreurs</div></div>
+        </div>
+        <div class="modal-btns">
+            <button class="btn btn-primary"   onclick="closeModal();restartTest()">↺&nbsp; Réessayer</button>
+            <button class="btn btn-secondary" onclick="closeModal();nextText()">→&nbsp; Suivant</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ========================================================
+   AZERTY LAYOUT DEFINITION
+   ======================================================== */
+const ROWS = [
+    [
+        {l:'²',  s:'',   c:'Backquote',    w:42},
+        {l:'&',  s:'1',  c:'Digit1',       w:42},
+        {l:'é',  s:'2',  c:'Digit2',       w:42},
+        {l:'"',  s:'3',  c:'Digit3',       w:42},
+        {l:"'",  s:'4',  c:'Digit4',       w:42},
+        {l:'(',  s:'5',  c:'Digit5',       w:42},
+        {l:'-',  s:'6',  c:'Digit6',       w:42},
+        {l:'è',  s:'7',  c:'Digit7',       w:42},
+        {l:'_',  s:'8',  c:'Digit8',       w:42},
+        {l:'ç',  s:'9',  c:'Digit9',       w:42},
+        {l:'à',  s:'0',  c:'Digit0',       w:42},
+        {l:')',  s:'°',  c:'Minus',        w:42},
+        {l:'=',  s:'+',  c:'Equal',        w:42},
+        {l:'⌫',  s:'',   c:'Backspace',    w:78, cls:'k-bsp'},
+    ],[
+        {l:'Tab', s:'',  c:'Tab',          w:66, cls:'k-tab k-mod'},
+        {l:'a',  s:'A',  c:'KeyQ',         w:42},
+        {l:'z',  s:'Z',  c:'KeyW',         w:42},
+        {l:'e',  s:'E',  c:'KeyE',         w:42},
+        {l:'r',  s:'R',  c:'KeyR',         w:42},
+        {l:'t',  s:'T',  c:'KeyT',         w:42},
+        {l:'y',  s:'Y',  c:'KeyY',         w:42},
+        {l:'u',  s:'U',  c:'KeyU',         w:42},
+        {l:'i',  s:'I',  c:'KeyI',         w:42},
+        {l:'o',  s:'O',  c:'KeyO',         w:42},
+        {l:'p',  s:'P',  c:'KeyP',         w:42},
+        {l:'^',  s:'¨',  c:'BracketLeft',  w:42},
+        {l:'$',  s:'£',  c:'BracketRight', w:42},
+        {l:'↵',  s:'',   c:'Enter',        w:78, cls:'k-ent'},
+    ],[
+        {l:'⇪',  s:'',   c:'CapsLock',     w:80, cls:'k-cap k-mod'},
+        {l:'q',  s:'Q',  c:'KeyA',         w:42},
+        {l:'s',  s:'S',  c:'KeyS',         w:42},
+        {l:'d',  s:'D',  c:'KeyD',         w:42},
+        {l:'f',  s:'F',  c:'KeyF',         w:42},
+        {l:'g',  s:'G',  c:'KeyG',         w:42},
+        {l:'h',  s:'H',  c:'KeyH',         w:42},
+        {l:'j',  s:'J',  c:'KeyJ',         w:42},
+        {l:'k',  s:'K',  c:'KeyK',         w:42},
+        {l:'l',  s:'L',  c:'KeyL',         w:42},
+        {l:'m',  s:'M',  c:'Semicolon',    w:42},
+        {l:'ù',  s:'%',  c:'Quote',        w:42},
+        {l:'*',  s:'µ',  c:'Backslash',    w:42},
+    ],[
+        {l:'⇧',  s:'',   c:'ShiftLeft',    w:98, cls:'k-shl k-mod'},
+        {l:'<',  s:'>',  c:'IntlBackslash',w:42},
+        {l:'w',  s:'W',  c:'KeyZ',         w:42},
+        {l:'x',  s:'X',  c:'KeyX',         w:42},
+        {l:'c',  s:'C',  c:'KeyC',         w:42},
+        {l:'v',  s:'V',  c:'KeyV',         w:42},
+        {l:'b',  s:'B',  c:'KeyB',         w:42},
+        {l:'n',  s:'N',  c:'KeyN',         w:42},
+        {l:',',  s:'?',  c:'Comma',        w:42},
+        {l:';',  s:'.',  c:'Period',        w:42},
+        {l:':',  s:'/',  c:'Slash',         w:42},
+        {l:'!',  s:'§',  c:'IntlRo',       w:42},
+        {l:'⇧',  s:'',   c:'ShiftRight',   w:98, cls:'k-shr k-mod'},
+    ],[
+        {l:'Ctrl', s:'', c:'ControlLeft',  w:56, cls:'k-mod'},
+        {l:'Alt',  s:'', c:'AltLeft',      w:56, cls:'k-mod'},
+        {l:'',     s:'', c:'Space',        w:340,cls:'k-sp'},
+        {l:'AltGr',s:'', c:'AltRight',     w:56, cls:'k-mod'},
+        {l:'Ctrl', s:'', c:'ControlRight', w:56, cls:'k-mod'},
+    ],
+];
+
+/* char → key code */
+const CHAR_CODE = {' ':'Space'};
+ROWS.forEach(row => row.forEach(k => {
+    if (k.l?.length === 1) CHAR_CODE[k.l] = k.c;
+    if (k.s?.length === 1) CHAR_CODE[k.s] = k.c;
+}));
+
+/* key code → finger */
+const FINGER = {
+    'Digit1':'Auriculaire G', 'Digit2':'Annulaire G',  'Digit3':'Majeur G',
+    'Digit4':'Index G',       'Digit5':'Index G',       'Digit6':'Index D',
+    'Digit7':'Index D',       'Digit8':'Majeur D',      'Digit9':'Annulaire D',
+    'Digit0':'Auriculaire D',
+    'KeyQ':'Auriculaire G', 'KeyW':'Annulaire G', 'KeyE':'Majeur G',
+    'KeyR':'Index G',       'KeyT':'Index G',     'KeyY':'Index D',
+    'KeyU':'Index D',       'KeyI':'Majeur D',    'KeyO':'Annulaire D',
+    'KeyP':'Auriculaire D',
+    'KeyA':'Auriculaire G', 'KeyS':'Annulaire G', 'KeyD':'Majeur G',
+    'KeyF':'Index G',       'KeyG':'Index G',     'KeyH':'Index D',
+    'KeyJ':'Index D',       'KeyK':'Majeur D',    'KeyL':'Annulaire D',
+    'Semicolon':'Auriculaire D',
+    'KeyZ':'Annulaire G', 'KeyX':'Majeur G', 'KeyC':'Index G',
+    'KeyV':'Index G',     'KeyB':'Index G',  'KeyN':'Index D',
+    'Comma':'Majeur D',   'Period':'Annulaire D', 'Slash':'Auriculaire D',
+    'Space':'Pouce',
+};
+
+/* ========================================================
+   TEXTS DATABASE
+   ======================================================== */
+const TEXTS = {
+    letters: [
+        'azertyuiop',
+        'qsdfghjklm',
+        'wxcvbn azer qsdf wxcv',
+        'az ze er rt ty yu ui io op',
+        'qs sd df fg gh hj jk kl lm',
+        'azer qsdf wxcv azer qsdf wxcv',
+        'az qs wx cd vf bg hn jm kl op',
+    ],
+    words: [
+        'le chat mange une souris dans la maison verte',
+        'bonjour monde comment allez vous aujourd hui',
+        'azerty clavier français typing vitesse précision',
+        'soleil nuage vent pluie neige montagne rivière forêt',
+        'livre table chaise fenêtre porte mur plafond sol jardin',
+        'rouge bleu vert jaune orange violet blanc noir gris',
+        'manger boire dormir marcher courir sauter danser chanter',
+        'voiture train avion bateau vélo moto bus tramway',
+    ],
+    phrases: [
+        'Le renard brun rapide saute par-dessus le chien paresseux.',
+        'La vie est belle quand on sait apprécier les petites choses.',
+        'Le soleil se lève chaque matin pour illuminer notre monde.',
+        'Apprendre à taper rapidement demande de la pratique quotidienne.',
+        'La technologie moderne nous permet de communiquer instantanément.',
+        'Chaque jour est une nouvelle occasion de progresser et de grandir.',
+        'Les oiseaux chantent dans les arbres au lever du soleil.',
+        'Portez ce vieux whisky au juge blond qui fume sur sa pipe.',
+    ],
+    special: [
+        'email@exemple.fr - prix: 12,50 euros - ref: AB-123',
+        'Bonjour! Comment ca va? Tres bien, merci. Et vous?',
+        "L'ete est chaud; l'hiver est froid: c'est ainsi.",
+        'Date: 10/05/2026 - Heure: 14h30 - Duree: 1h15',
+        'ax + by = c; ou a, b et c sont des constantes reelles.',
+        'www.exemple.fr - identifiant: user42 - code: Az-789',
+    ],
+};
+
+/* ========================================================
+   STATE
+   ======================================================== */
+const S = {
+    mode: 'words', textIdx: 0,
+    text: '', typed: '',
+    t0: null, tickId: null,
+    errors: 0, total: 0, streak: 0,
+    running: false, done: false,
+};
+
+/* ========================================================
+   BUILD KEYBOARD
+   ======================================================== */
+function buildKB() {
+    const kb = document.getElementById('keyboard');
+    kb.innerHTML = '';
+    ROWS.forEach(row => {
+        const rEl = document.createElement('div');
+        rEl.className = 'key-row';
+        row.forEach(k => {
+            const el = document.createElement('div');
+            el.className = 'key' + (k.cls ? ' '+k.cls : '');
+            el.id = 'k-' + k.c;
+            el.style.minWidth = k.w + 'px';
+            if (k.s && k.s.trim()) {
+                el.innerHTML = `<div class="key-inner"><span class="key-sh">${k.s}</span><span class="key-main">${k.l}</span></div>`;
+            } else {
+                el.textContent = k.l;
+            }
+            rEl.appendChild(el);
+        });
+        kb.appendChild(rEl);
+    });
+}
+
+/* ========================================================
+   LOAD / RENDER TEXT
+   ======================================================== */
+function loadText() {
+    const pool = TEXTS[S.mode];
+    S.textIdx = S.textIdx % pool.length;
+    S.text = pool[S.textIdx];
+    S.typed = '';
+    S.errors = 0; S.total = 0; S.streak = 0;
+    S.running = false; S.done = false;
+    clearInterval(S.tickId);
+    document.getElementById('inp').value = '';
+    renderText();
+    resetStats();
+    clearKBClasses();
+    hlNextKey();
+    document.getElementById('start-ov').classList.remove('gone');
+}
+
+function renderText() {
+    const d = document.getElementById('display');
+    d.innerHTML = '';
+    [...S.text].forEach((ch, i) => {
+        const sp = document.createElement('span');
+        sp.className = 'char' + (i === 0 ? ' cur' : '');
+        sp.dataset.i = i;
+        sp.textContent = ch === ' ' ? ' ' : ch;
+        d.appendChild(sp);
+    });
+}
+
+/* ========================================================
+   INPUT HANDLING
+   ======================================================== */
+function setupInput() {
+    const inp = document.getElementById('inp');
+
+    inp.addEventListener('keydown', e => {
+        if (S.done) return;
+        if (e.key === 'Escape') { restartTest(); return; }
+        if (e.key === 'Tab') { e.preventDefault(); nextText(); return; }
+        // Physical key visual
+        const el = document.getElementById('k-' + e.code);
+        if (el) {
+            el.classList.add('phys-press');
+            setTimeout(() => el.classList.remove('phys-press'), 140);
+        }
+    });
+
+    inp.addEventListener('input', () => {
+        if (S.done) return;
+        const val = inp.value;
+
+        // Start timer
+        if (!S.running && val.length > 0) {
+            S.running = true;
+            S.t0 = Date.now();
+            S.tickId = setInterval(updateStats, 250);
+            document.getElementById('start-ov').classList.add('gone');
+            ['sc-wpm','sc-acc','sc-time','sc-str'].forEach(id =>
+                document.getElementById(id).classList.add('pulse')
+            );
+        }
+
+        // Guard max length
+        if (val.length > S.text.length) { inp.value = val.slice(0, S.text.length); return; }
+
+        // Backspace
+        if (val.length < S.typed.length) { S.typed = val; repaint(); hlNextKey(); return; }
+
+        // New char
+        const pos = val.length - 1;
+        const got = val[pos], exp = S.text[pos];
+        S.total++;
+        const code = CHAR_CODE[got];
+
+        if (got === exp) {
+            S.streak++;
+            flashKey(code, 'ok-press', 220);
+        } else {
+            S.errors++; S.streak = 0;
+            flashKey(code, 'bad-press', 220);
+            shake();
+        }
+
+        S.typed = val;
+        repaint();
+        updateStats();
+        hlNextKey();
+
+        if (val.length === S.text.length) finish();
+    });
+
+    document.addEventListener('keydown', e => {
+        if (!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) {
+            if (!['Tab','Escape'].includes(e.key)) focusInput();
+        }
+    });
+}
+
+function focusInput() { document.getElementById('inp').focus(); }
+
+/* ========================================================
+   REPAINT TEXT
+   ======================================================== */
+function repaint() {
+    document.querySelectorAll('#display .char').forEach((sp, i) => {
+        sp.className = 'char';
+        if      (i < S.typed.length) sp.classList.add(S.typed[i] === S.text[i] ? 'ok' : 'bad');
+        else if (i === S.typed.length) sp.classList.add('cur');
+    });
+    document.getElementById('prog').style.width = (S.typed.length / S.text.length * 100) + '%';
+}
+
+/* ========================================================
+   KEYBOARD HELPERS
+   ======================================================== */
+function clearKBClasses() {
+    document.querySelectorAll('.key').forEach(k =>
+        k.classList.remove('hl','ok-press','bad-press','phys-press')
+    );
+}
+
+function hlNextKey() {
+    document.querySelectorAll('.key.hl').forEach(k => k.classList.remove('hl'));
+    const ch = S.text[S.typed.length];
+    if (!ch) return;
+    const code = CHAR_CODE[ch];
+    if (code) {
+        const el = document.getElementById('k-' + code);
+        if (el) el.classList.add('hl');
+        // Shift for uppercase
+        if (ch !== ch.toLowerCase() && ch === ch.toUpperCase()) {
+            const sl = document.getElementById('k-ShiftLeft');
+            if (sl) sl.classList.add('hl');
+        }
+        // Finger hint
+        const f = FINGER[code];
+        document.getElementById('finger-hint').textContent = f ? 'Doigt : ' + f : ' ';
+    }
+}
+
+function flashKey(code, cls, ms) {
+    if (!code) return;
+    const el = document.getElementById('k-' + code);
+    if (!el) return;
+    el.classList.add(cls);
+    setTimeout(() => el.classList.remove(cls), ms);
+}
+
+function shake() {
+    const d = document.getElementById('display');
+    d.classList.remove('shake');
+    void d.offsetWidth;
+    d.classList.add('shake');
+}
+
+/* ========================================================
+   STATS
+   ======================================================== */
+function resetStats() {
+    document.getElementById('v-wpm').textContent  = '0';
+    document.getElementById('v-acc').textContent  = '—';
+    document.getElementById('v-time').textContent = '0s';
+    document.getElementById('v-str').textContent  = '0';
+    document.getElementById('prog').style.width   = '0%';
+    ['sc-wpm','sc-acc','sc-time','sc-str'].forEach(id =>
+        document.getElementById(id).classList.remove('pulse')
+    );
+}
+
+function updateStats() {
+    if (!S.t0) return;
+    const secs = (Date.now() - S.t0) / 1000;
+    const mins = secs / 60;
+    const correct = [...S.typed].filter((c,i) => c === S.text[i]).length;
+    const wpm = mins > 0 ? Math.round(correct / 5 / mins) : 0;
+    const acc = S.total > 0 ? Math.round((S.total - S.errors) / S.total * 100) : 100;
+    document.getElementById('v-wpm').textContent  = wpm;
+    document.getElementById('v-acc').textContent  = acc + '%';
+    document.getElementById('v-time').textContent = Math.round(secs) + 's';
+    document.getElementById('v-str').textContent  = S.streak;
+}
+
+/* ========================================================
+   FINISH
+   ======================================================== */
+function finish() {
+    clearInterval(S.tickId);
+    S.done = true;
+    const secs = (Date.now() - S.t0) / 1000;
+    const mins = secs / 60;
+    const correct = [...S.typed].filter((c,i) => c === S.text[i]).length;
+    const wpm = mins > 0 ? Math.round(correct / 5 / mins) : 0;
+    const acc = S.total > 0 ? Math.round((S.total - S.errors) / S.total * 100) : 100;
+
+    document.getElementById('r-wpm').textContent  = wpm;
+    document.getElementById('r-acc').textContent  = acc + '%';
+    document.getElementById('r-time').textContent = Math.round(secs) + 's';
+    document.getElementById('r-err').textContent  = S.errors;
+
+    let emo, title, sub;
+    if      (wpm >= 60 && acc >= 95) { emo='🏆'; title='Excellent !';   sub='Vous maîtrisez l\'AZERTY comme un pro !'; }
+    else if (wpm >= 40 && acc >= 90) { emo='⭐'; title='Très bien !';   sub='Vous progressez rapidement, continuez !'; }
+    else if (wpm >= 25)              { emo='👍'; title='Bien joué !';    sub='La pratique régulière fera la différence.'; }
+    else                             { emo='💪'; title='Continuez !';    sub='Chaque essai vous rend plus rapide et précis.'; }
+
+    document.getElementById('m-emo').textContent   = emo;
+    document.getElementById('m-title').textContent = title;
+    document.getElementById('m-sub').textContent   = sub;
+
+    setTimeout(() => document.getElementById('modal').classList.add('on'), 350);
+}
+
+/* ========================================================
+   CONTROLS
+   ======================================================== */
+function setMode(mode, btn) {
+    S.mode = mode; S.textIdx = 0;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadText();
+}
+
+function restartTest()  { loadText(); closeModal(); }
+function nextText()     { S.textIdx++; loadText(); closeModal(); }
+function closeModal()   { document.getElementById('modal').classList.remove('on'); }
+
+/* ========================================================
+   BOOT
+   ======================================================== */
+buildKB();
+loadText();
+setupInput();
+document.getElementById('typing-area').addEventListener('click', focusInput);
+document.getElementById('modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+</script>
+</body>
+</html>
